@@ -1,3 +1,4 @@
+// src/db/schema/tables/user.ts
 import {
   pgTable,
   uuid,
@@ -43,8 +44,8 @@ export const usersTable = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     email: varchar("email", { length: 255 }).notNull().unique(),
     username: varchar("username", { length: 100 }).unique(),
-    name: varchar("name", { length: 255 }), // Added for Better Auth compatibility
-    image: varchar("image", { length: 500 }), // Map to avatar
+    name: varchar("name", { length: 255 }), // For Better Auth (populated from first_name + lastName)
+    image: varchar("image", { length: 500 }), // For Better Auth (maps to avatar)
     first_name: varchar("first_name", { length: 100 }).notNull(),
     lastName: varchar("last_name", { length: 100 }).notNull(),
     avatar: varchar("avatar", { length: 500 }),
@@ -82,12 +83,15 @@ export const usersTable = pgTable(
     huggingFaceUrl: varchar("hugging_url", { length: 500 }),
     twitterUrl: varchar("twitter_url", { length: 500 }),
     personalWebsite: varchar("personal_website", { length: 500 }),
-    passwordHash: varchar("password_hash", { length: 255 }),
-    emailVerified: boolean("email_verified").default(false),
+    passwordHash: varchar("password_hash", { length: 255 }), // Used by Better Auth
+    emailVerified: boolean("email_verified").default(false), // Used by Better Auth
     isActive: boolean("is_active").default(true),
     lastLoginAt: timestamp("last_login_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
   },
   (table) => ({
     emailIdx: index("users_email_idx").on(table.email),

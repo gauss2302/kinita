@@ -1,4 +1,3 @@
-// src/app/signup/page.tsx
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -8,6 +7,12 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [role, setRole] = useState<
+    "AI_ENGINEER" | "RECRUITER" | "RESEARCHER" | "COMPANY_HR" | "ADMIN"
+  >("AI_ENGINEER");
+  const [avatar, setAvatar] = useState("");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -17,7 +22,12 @@ export default function SignUpPage() {
       await signUp.email({
         email,
         password,
-        username: username || undefined, // Handle optional username
+        username: username || undefined,
+        first_name: firstName,
+        lastName,
+        role,
+        image: avatar || undefined, // Maps to avatar
+        name: `${firstName} ${lastName}`, // Populate name for Better Auth
       });
       router.push("/dashboard");
     } catch (err: any) {
@@ -28,7 +38,12 @@ export default function SignUpPage() {
 
   const handleSocialSignUp = async (provider: "google" | "github") => {
     try {
-      await signUp[provider]();
+      await signUp[provider]({
+        role: "AI_ENGINEER", // Default role for OAuth
+        first_name: "OAuth", // Default, prompt for completion later
+        lastName: "User",
+        name: "OAuth User",
+      });
       router.push("/dashboard");
     } catch (err: any) {
       console.error(`${provider} sign-up error:`, err);
@@ -44,6 +59,34 @@ export default function SignUpPage() {
 
         <form onSubmit={handleEmailSignUp} className="space-y-4">
           <div>
+            <label htmlFor="firstName" className="block text-sm font-medium">
+              First Name
+            </label>
+            <input
+              id="firstName"
+              type="text"
+              placeholder="First Name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="lastName" className="block text-sm font-medium">
+              Last Name
+            </label>
+            <input
+              id="lastName"
+              type="text"
+              placeholder="Last Name"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          <div>
             <label htmlFor="username" className="block text-sm font-medium">
               Username (optional)
             </label>
@@ -53,6 +96,19 @@ export default function SignUpPage() {
               placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+          <div>
+            <label htmlFor="avatar" className="block text-sm font-medium">
+              Avatar URL (optional)
+            </label>
+            <input
+              id="avatar"
+              type="text"
+              placeholder="Avatar URL"
+              value={avatar}
+              onChange={(e) => setAvatar(e.target.value)}
               className="w-full p-2 border rounded"
             />
           </div>
@@ -83,6 +139,24 @@ export default function SignUpPage() {
               className="w-full p-2 border rounded"
               required
             />
+          </div>
+          <div>
+            <label htmlFor="role" className="block text-sm font-medium">
+              Role
+            </label>
+            <select
+              id="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value as typeof role)}
+              className="w-full p-2 border rounded"
+              required
+            >
+              <option value="AI_ENGINEER">AI Engineer</option>
+              <option value="RECRUITER">Recruiter</option>
+              <option value="RESEARCHER">Researcher</option>
+              <option value="COMPANY_HR">Company HR</option>
+              <option value="ADMIN">Admin</option>
+            </select>
           </div>
           <button
             type="submit"

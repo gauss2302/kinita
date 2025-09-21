@@ -1,11 +1,11 @@
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { usersTable } from "./user";
 
-export const accounts = pgTable("accounts", {
-  id: text("id").primaryKey(),
+export const accountsTable = pgTable("accounts", {
+  id: uuid("id").primaryKey().defaultRandom(), // Changed to uuid
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
-  userId: text("user_id")
+  userId: uuid("user_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
   accessToken: text("access_token"),
@@ -17,6 +17,9 @@ export const accounts = pgTable("accounts", {
   password: text("password"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
-    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .$onUpdate(() => new Date())
     .notNull(),
 });
+
+export type Account = typeof accountsTable.$inferSelect;
+export type NewAccount = typeof accountsTable.$inferInsert;
