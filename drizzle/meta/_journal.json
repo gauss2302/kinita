@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1758458345638,
-      "tag": "0000_stiff_northstar",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1758474595555,
-      "tag": "0001_empty_thunderbolts",
+      "when": 1758528050647,
+      "tag": "0000_parched_shadow_king",
       "breakpoints": true
     }
   ]

@@ -1,16 +1,16 @@
 import {
-  pgTable,
-  uuid,
-  varchar,
-  text,
-  integer,
   boolean,
-  timestamp,
-  jsonb,
-  index,
   decimal,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  varchar,
 } from "drizzle-orm/pg-core";
-import { employmentTypes, experienceLevels } from "./user";
+import { companiesTable, usersTable } from "../schema";
+import { employmentTypes, experienceLevels } from "./users";
 
 export const jobStatus = [
   "DRAFT",
@@ -19,37 +19,28 @@ export const jobStatus = [
   "CLOSED",
   "FILLED",
 ] as const;
-export const applicationStatus = [
-  "PENDING",
-  "REVIEWED",
-  "INTERVIEWING",
-  "OFFERED",
-  "REJECTED",
-  "ACCEPTED",
-  "WITHDRAWN",
-] as const;
-
 export type JobStatus = (typeof jobStatus)[number];
-export type ApplicationStatus = (typeof applicationStatus)[number];
 
-export const jobs = pgTable(
+export const jobsTable = pgTable(
   "jobs",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    companyId: uuid("company_id").notNull(), // FK to companies
-    recruiterId: uuid("recruiter_id"), // FK to users (recruiter)
+    id: text("id").primaryKey(),
+    companyId: text("company_id")
+      .notNull()
+      .references(() => companiesTable.id, { onDelete: "cascade" }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => usersTable.id, { onDelete: "restrict" }),
 
-    // Основная информация о вакансии
+    // Основная информация
     title: varchar("title", { length: 300 }).notNull(),
     slug: varchar("slug", { length: 300 }).notNull().unique(),
     description: text("description").notNull(),
-
-    // Требования
     requirements: text("requirements"),
     responsibilities: text("responsibilities"),
-    niceToHave: text("nice_to_have"),
+    benefits: text("benefits"),
 
-    // Профессиональная информация
+    // Профессиональные требования
     experienceLevel: varchar("experience_level", {
       enum: experienceLevels,
     }).notNull(),
@@ -68,7 +59,7 @@ export const jobs = pgTable(
     salaryCurrency: varchar("salary_currency", { length: 3 }).default("USD"),
     equityOffered: boolean("equity_offered").default(false),
 
-    // Технические требования
+    // Навыки
     requiredSkills: jsonb("required_skills").$type<{
       programming: string[];
       frameworks: string[];
@@ -84,20 +75,19 @@ export const jobs = pgTable(
       certifications: string[];
     }>(),
 
-    // AI специфичная информация
-    aiDomain: varchar("ai_domain", { length: 100 }), // "NLP", "Computer Vision", "MLOps"
-    teamSize: integer("team_size"),
+    // AI специфика
+    aiDomains: jsonb("ai_domains").$type<string[]>(),
     researchComponent: boolean("research_component").default(false),
     publicationsRequired: boolean("publications_required").default(false),
 
-    // Статус и время
+    // Статус и метрики
     status: varchar("status", { enum: jobStatus }).default("DRAFT").notNull(),
-    applicationDeadline: timestamp("application_deadline"),
-    startDate: timestamp("start_date"),
-
-    // Метрики
     viewsCount: integer("views_count").default(0),
     applicationsCount: integer("applications_count").default(0),
+
+    // Временные рамки
+    applicationDeadline: timestamp("application_deadline"),
+    startDate: timestamp("start_date"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -106,14 +96,12 @@ export const jobs = pgTable(
   },
   (table) => ({
     companyIdx: index("jobs_company_idx").on(table.companyId),
+    creatorIdx: index("jobs_creator_idx").on(table.createdBy),
     statusIdx: index("jobs_status_idx").on(table.status),
-    locationIdx: index("jobs_location_idx").on(table.location),
-    experienceIdx: index("jobs_experience_idx").on(table.experienceLevel),
     skillsIdx: index("jobs_skills_idx").using("gin", table.requiredSkills),
-    aiDomainIdx: index("jobs_ai_domain_idx").on(table.aiDomain),
     publishedIdx: index("jobs_published_idx").on(table.publishedAt),
   })
 );
 
-export type Job = typeof jobs.$inferSelect;
-export type NewJob = typeof jobs.$inferInsert;
+export type Job = typeof jobsTable.$inferSelect;
+export type NewJob = typeof jobsTable.$inferInsert;

@@ -10,7 +10,8 @@ import {
   jsonb,
   index,
 } from "drizzle-orm/pg-core";
-import { usersTable } from "./user";
+
+import { usersTable } from "./users";
 
 export const companyTypes = [
   "STARTUP",
@@ -20,6 +21,7 @@ export const companyTypes = [
   "RESEARCH_LAB",
   "UNIVERSITY",
 ] as const;
+
 export const companySizes = [
   "1_10",
   "11_50",
@@ -29,18 +31,21 @@ export const companySizes = [
   "5000_PLUS",
 ] as const;
 
+export type CompanyType = (typeof companyTypes)[number];
+export type CompanySize = (typeof companySizes)[number];
+
 export const companiesTable = pgTable(
   "companies",
   {
     id: text("id").primaryKey(),
     name: varchar("name", { length: 255 }).notNull(),
-    slug: varchar("slug", { length: 200 }).notNull(),
+    slug: varchar("slug", { length: 200 }).notNull().unique(),
     description: text("description"),
     website: varchar("website", { length: 500 }),
 
     type: varchar("type", { enum: companyTypes }).notNull(),
     size: varchar("size", { enum: companySizes }).notNull(),
-    foundedyear: integer("founded_year"),
+    foundedYear: integer("founded_year"),
 
     headquarters: varchar("headquarters", { length: 200 }),
     locations: jsonb("locations").$type<string[]>(),
@@ -49,10 +54,10 @@ export const companiesTable = pgTable(
     linkedinUrl: varchar("linkedin_url", { length: 500 }),
     twitterUrl: varchar("twitter_url", { length: 500 }),
     githubUrl: varchar("github_url", { length: 500 }),
-    huggingFaceUrl: varchar("hugging_face_url", { length: 500 }),
 
     employeeCount: integer("employee_count"),
 
+    // Создатель компании (обычно COMPANY_ADMIN)
     creatorId: text("creator_id")
       .notNull()
       .references(() => usersTable.id, { onDelete: "restrict" }),
@@ -60,8 +65,6 @@ export const companiesTable = pgTable(
     isVerified: boolean("is_verified").default(false),
     isActive: boolean("is_active").default(true),
 
-    // Time Activity
-    lastLoginAt: timestamp("last_login_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
@@ -69,16 +72,9 @@ export const companiesTable = pgTable(
     nameIdx: index("companies_name_idx").on(table.name),
     slugIdx: index("companies_slug_idx").on(table.slug),
     typeIdx: index("companies_type_idx").on(table.type),
-    sizeIdx: index("companies_size_idx").on(table.size),
+    creatorIdx: index("companies_creator_idx").on(table.creatorId),
   })
 );
-
-export const companiesRelations = relations(companiesTable, ({ one }) => ({
-  creator: one(usersTable, {
-    fields: [companiesTable.creatorId],
-    references: [usersTable.id],
-  }),
-}));
 
 export type Company = typeof companiesTable.$inferSelect;
 export type NewCompany = typeof companiesTable.$inferInsert;

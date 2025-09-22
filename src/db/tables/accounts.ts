@@ -1,6 +1,6 @@
 // src/db/tables/accounts.ts
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { usersTable } from "./user";
+import { usersTable } from "./users";
 
 export const accountsTable = pgTable("accounts", {
   id: text("id").primaryKey(),
@@ -18,6 +18,7 @@ export const accountsTable = pgTable("accounts", {
   password: text("password"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
+    .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
 });

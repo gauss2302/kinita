@@ -67,7 +67,7 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gradient-to-r from-blue-500 to-purple-500">
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
         <div className="p-6 bg-white rounded-lg shadow-md w-full max-w-md">
           <h2 className="mb-6 text-2xl font-bold text-center">

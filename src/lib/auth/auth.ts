@@ -4,8 +4,8 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db/client";
 
-import { usersTable } from "@/db/tables/user";
-import { sessionsTable } from "@/db/tables/session";
+import { usersTable } from "@/db/tables/users";
+import { sessionsTable } from "@/db/tables/sessions";
 import { accountsTable } from "@/db/tables/accounts";
 import { verificationsTable } from "@/db/tables/verifications";
 
