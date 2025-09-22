@@ -1,5 +1,5 @@
 {
-  "id": "ea4c9381-aad9-43f8-8f0c-aca0279cceb7",
+  "id": "c6e974c3-42b6-4faf-aba0-bda68fa1ae3a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -88,7 +88,7 @@
           "type": "varchar",
           "primaryKey": false,
           "notNull": true,
-          "default": "'JOB_SEEKER'"
+          "default": "'AI_ENGINEER'"
         },
         "location": {
           "name": "location",
@@ -245,6 +245,13 @@
         },
         "created_at": {
           "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
@@ -473,17 +480,25 @@
           "primaryKey": false,
           "notNull": false
         },
+        "logo": {
+          "name": "logo",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "type": {
           "name": "type",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'STARTUP'"
         },
         "size": {
           "name": "size",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'1_10'"
         },
         "founded_year": {
           "name": "founded_year",
@@ -500,12 +515,6 @@
         "locations": {
           "name": "locations",
           "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "logo": {
-          "name": "logo",
-          "type": "varchar(500)",
           "primaryKey": false,
           "notNull": false
         },

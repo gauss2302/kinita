@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/db/client";
 import { usersTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -152,58 +153,58 @@ export class UserService {
     }
   }
 
-  static async createAdminUserForCompany(
-    input: z.infer<typeof createAdminUserSchema>
-  ) {
-    const validated = createAdminUserSchema.parse(input);
+  // static async createAdminUserForCompany(
+  //   input: z.infer<typeof createAdminUserSchema>
+  // ) {
+  //   const validated = createAdminUserSchema.parse(input);
 
-    try {
-      // Check for duplicate email
-      const existingUser = await db
-        .select({ id: usersTable.id })
-        .from(usersTable)
-        .where(eq(usersTable.email, validated.email))
-        .limit(1);
-      if (existingUser.length > 0) {
-        throw new Error("Email already in use");
-      }
+  //   try {
+  //     // Check for duplicate email
+  //     const existingUser = await db
+  //       .select({ id: usersTable.id })
+  //       .from(usersTable)
+  //       .where(eq(usersTable.email, validated.email))
+  //       .limit(1);
+  //     if (existingUser.length > 0) {
+  //       throw new Error("Email already in use");
+  //     }
 
-      // Check for duplicate username if provided
-      if (validated.username) {
-        const existingUsername = await db
-          .select({ id: usersTable.id })
-          .from(usersTable)
-          .where(eq(usersTable.username, validated.username))
-          .limit(1);
-        if (existingUsername.length > 0) {
-          throw new Error("Username already taken");
-        }
-      }
+  //     // Check for duplicate username if provided
+  //     if (validated.username) {
+  //       const existingUsername = await db
+  //         .select({ id: usersTable.id })
+  //         .from(usersTable)
+  //         .where(eq(usersTable.username, validated.username))
+  //         .limit(1);
+  //       if (existingUsername.length > 0) {
+  //         throw new Error("Username already taken");
+  //       }
+  //     }
 
-      // Insert user
-      const [newUser] = await db
-        .insert(usersTable)
-        .values({
-          id: crypto.randomUUID(), // Or your ID generator for 32-char string
-          email: validated.email,
-          first_name: validated.first_name,
-          lastName: validated.lastName,
-          username: validated.username,
-          role: "ADMIN" as const,
-          name: `${validated.first_name} ${validated.lastName}`,
-          companyId: validated.companyId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .returning();
+  //     // Insert user
+  //     const [newUser] = await db
+  //       .insert(usersTable)
+  //       .values({
+  //         id: crypto.randomUUID(), // Or your ID generator for 32-char string
+  //         email: validated.email,
+  //         first_name: validated.first_name,
+  //         lastName: validated.lastName,
+  //         username: validated.username,
+  //         role: "ADMIN" as const,
+  //         name: `${validated.first_name} ${validated.lastName}`,
+  //         companyId: validated.companyId,
+  //         createdAt: new Date(),
+  //         updatedAt: new Date(),
+  //       })
+  //       .returning();
 
-      if (!newUser) {
-        throw new Error("Failed to create admin user");
-      }
+  //     if (!newUser) {
+  //       throw new Error("Failed to create admin user");
+  //     }
 
-      return newUser;
-    } catch (error: any) {
-      throw new Error(`Failed to create admin user: ${error.message}`);
-    }
-  }
+  //     return newUser;
+  //   } catch (error: any) {
+  //     throw new Error(`Failed to create admin user: ${error.message}`);
+  //   }
+  // }
 }

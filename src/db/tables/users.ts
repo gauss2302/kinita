@@ -8,11 +8,11 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const userRoles = [
-  "JOB_SEEKER", // Соискатель работы - обычный пользователь
-  "RECRUITER", // Рекрутер
-  "COMPANY_ADMIN", // Админ компании
-  "RESEARCHER", // Исследователь
-  "PLATFORM_ADMIN", // Админ платформы
+  "AI_ENGINEER",
+  "RECRUITER",
+  "RESEARCHER",
+  "COMPANY_HR",
+  "ADMIN",
 ] as const;
 
 export const experienceLevels = [
@@ -36,11 +36,11 @@ export type UserRole = (typeof userRoles)[number];
 export type ExperienceLevel = (typeof experienceLevels)[number];
 export type EmploymentType = (typeof employmentTypes)[number];
 
-// Минимальная таблица пользователей для Better Auth
+// Users table compatible with Better Auth
 export const usersTable = pgTable(
   "users",
   {
-    // Better Auth обязательные поля
+    // Better Auth required fields
     id: text("id").primaryKey(),
     name: varchar("name", { length: 255 }),
     email: varchar("email", { length: 255 }).notNull().unique(),
@@ -52,24 +52,24 @@ export const usersTable = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
 
-    // Основные поля пользователя
+    // Additional user fields
     username: varchar("username", { length: 100 }).unique(),
-    firstName: varchar("first_name", { length: 100 }),
+    first_name: varchar("first_name", { length: 100 }),
     lastName: varchar("last_name", { length: 100 }),
     avatar: varchar("avatar", { length: 500 }),
     bio: text("bio"),
 
-    // Тип пользователя - ключевое поле
-    role: varchar("role", { enum: userRoles }).notNull().default("JOB_SEEKER"),
+    // User role - this is the key field
+    role: varchar("role", { enum: userRoles }).notNull().default("AI_ENGINEER"),
 
-    // Контакты
+    // Contact information
     location: varchar("location", { length: 200 }),
     timezone: varchar("timezone", { length: 100 }),
     githubUrl: varchar("github_url", { length: 500 }),
     linkedinUrl: varchar("linkedin_url", { length: 500 }),
     personalWebsite: varchar("personal_website", { length: 500 }),
 
-    // Системные поля
+    // System fields
     isActive: boolean("is_active").default(true),
     lastLoginAt: timestamp("last_login_at"),
   },

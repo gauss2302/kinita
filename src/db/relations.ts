@@ -1,19 +1,19 @@
 import { relations } from "drizzle-orm";
-import {
-  accountsTable,
-  companiesTable,
-  sessionsTable,
-  usersTable,
-} from "./schema";
-import { jobSeekerProfilesTable } from "./tables/job-seeker-profiles";
+
+// Import all tables directly to avoid circular dependencies
+import { usersTable } from "./tables/users";
+import { sessionsTable } from "./tables/sessions";
+import { accountsTable } from "./tables/accounts";
+import { companiesTable } from "./tables/companies";
 import { companyMembersTable } from "./tables/company-members";
+import { jobSeekerProfilesTable } from "./tables/job-seeker-profiles";
 import { jobsTable } from "./tables/jobs";
 import { applicationsTable } from "./tables/applications";
 import { researchOpportunitiesTable } from "./tables/research-opportunities";
 
 // User Relations
 export const usersRelations = relations(usersTable, ({ one, many }) => ({
-  // Profile relation (только для соискателей)
+  // Profile relation (only for job seekers)
   jobSeekerProfile: one(jobSeekerProfilesTable, {
     fields: [usersTable.id],
     references: [jobSeekerProfilesTable.userId],

@@ -1,16 +1,13 @@
-import { relations } from "drizzle-orm";
 import {
   pgTable,
-  uuid,
-  varchar,
   text,
+  varchar,
   integer,
   boolean,
   timestamp,
   jsonb,
   index,
 } from "drizzle-orm/pg-core";
-
 import { usersTable } from "./users";
 
 export const companyTypes = [
@@ -37,27 +34,30 @@ export type CompanySize = (typeof companySizes)[number];
 export const companiesTable = pgTable(
   "companies",
   {
-    id: text("id").primaryKey(),
+    id: text("id")
+      .primaryKey()
+      .$default(() => crypto.randomUUID()),
     name: varchar("name", { length: 255 }).notNull(),
     slug: varchar("slug", { length: 200 }).notNull().unique(),
     description: text("description"),
     website: varchar("website", { length: 500 }),
+    logo: varchar("logo", { length: 500 }),
 
-    type: varchar("type", { enum: companyTypes }).notNull(),
-    size: varchar("size", { enum: companySizes }).notNull(),
+    // Required fields with defaults
+    type: varchar("type", { enum: companyTypes }).notNull().default("STARTUP"),
+    size: varchar("size", { enum: companySizes }).notNull().default("1_10"),
     foundedYear: integer("founded_year"),
 
     headquarters: varchar("headquarters", { length: 200 }),
     locations: jsonb("locations").$type<string[]>(),
 
-    logo: varchar("logo", { length: 500 }),
     linkedinUrl: varchar("linkedin_url", { length: 500 }),
     twitterUrl: varchar("twitter_url", { length: 500 }),
     githubUrl: varchar("github_url", { length: 500 }),
 
     employeeCount: integer("employee_count"),
 
-    // Создатель компании (обычно COMPANY_ADMIN)
+    // Creator of the company (usually ADMIN)
     creatorId: text("creator_id")
       .notNull()
       .references(() => usersTable.id, { onDelete: "restrict" }),
@@ -66,7 +66,10 @@ export const companiesTable = pgTable(
     isActive: boolean("is_active").default(true),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
   },
   (table) => ({
     nameIdx: index("companies_name_idx").on(table.name),

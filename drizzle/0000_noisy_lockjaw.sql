@@ -11,7 +11,7 @@ CREATE TABLE "users" (
 	"last_name" varchar(100),
 	"avatar" varchar(500),
 	"bio" text,
-	"role" varchar DEFAULT 'JOB_SEEKER' NOT NULL,
+	"role" varchar DEFAULT 'AI_ENGINEER' NOT NULL,
 	"location" varchar(200),
 	"timezone" varchar(100),
 	"github_url" varchar(500),
@@ -31,6 +31,7 @@ CREATE TABLE "sessions" (
 	"ip_address" varchar(45),
 	"user_agent" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "sessions_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
@@ -65,12 +66,12 @@ CREATE TABLE "companies" (
 	"slug" varchar(200) NOT NULL,
 	"description" text,
 	"website" varchar(500),
-	"type" varchar NOT NULL,
-	"size" varchar NOT NULL,
+	"logo" varchar(500),
+	"type" varchar DEFAULT 'STARTUP' NOT NULL,
+	"size" varchar DEFAULT '1_10' NOT NULL,
 	"founded_year" integer,
 	"headquarters" varchar(200),
 	"locations" jsonb,
-	"logo" varchar(500),
 	"linkedin_url" varchar(500),
 	"twitter_url" varchar(500),
 	"github_url" varchar(500),
