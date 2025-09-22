@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   pgTable,
   uuid,
@@ -9,6 +10,7 @@ import {
   jsonb,
   index,
 } from "drizzle-orm/pg-core";
+import { usersTable } from "./user";
 
 export const companyTypes = [
   "STARTUP",
@@ -30,7 +32,7 @@ export const companySizes = [
 export const companiesTable = pgTable(
   "companies",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
+    id: text("id").primaryKey(),
     name: varchar("name", { length: 255 }).notNull(),
     slug: varchar("slug", { length: 200 }).notNull(),
     description: text("description"),
@@ -51,6 +53,10 @@ export const companiesTable = pgTable(
 
     employeeCount: integer("employee_count"),
 
+    creatorId: text("creator_id")
+      .notNull()
+      .references(() => usersTable.id, { onDelete: "restrict" }),
+
     isVerified: boolean("is_verified").default(false),
     isActive: boolean("is_active").default(true),
 
@@ -66,6 +72,13 @@ export const companiesTable = pgTable(
     sizeIdx: index("companies_size_idx").on(table.size),
   })
 );
+
+export const companiesRelations = relations(companiesTable, ({ one }) => ({
+  creator: one(usersTable, {
+    fields: [companiesTable.creatorId],
+    references: [usersTable.id],
+  }),
+}));
 
 export type Company = typeof companiesTable.$inferSelect;
 export type NewCompany = typeof companiesTable.$inferInsert;

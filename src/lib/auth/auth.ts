@@ -1,68 +1,109 @@
 // src/lib/auth/auth.ts
-import { client } from "@/db/client";
-import { schema } from "@/db/schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
+import { db } from "@/db/client";
+
+import { usersTable } from "@/db/tables/user";
+import { sessionsTable } from "@/db/tables/session";
+import { accountsTable } from "@/db/tables/accounts";
+import { verificationsTable } from "@/db/tables/verifications";
 
 export const auth = betterAuth({
-  database: drizzleAdapter(client, {
+  database: drizzleAdapter(db, {
     provider: "pg",
-    usePlural: true, // Matches table name "users", "sessions"
     schema: {
-      user: schema.usersTable,
-      session: schema.sessionsTable,
-      account: schema.accountsTable,
-      verification: schema.verificationsTable,
+      user: usersTable,
+      session: sessionsTable,
+      account: accountsTable,
+      verification: verificationsTable,
     },
   }),
-  emailAndPassword: {
-    enabled: true,
+  user: {
     additionalFields: {
       first_name: {
         type: "string",
-        required: true,
+        required: false,
+        defaultValue: "User",
       },
       lastName: {
         type: "string",
-        required: true,
+        required: false,
+        defaultValue: "Name",
       },
       role: {
         type: "string",
-        required: true,
-        enum: ["AI_ENGINEER", "RECRUITER", "RESEARCHER", "COMPANY_HR", "ADMIN"],
+        required: false,
+        defaultValue: "AI_ENGINEER",
       },
       username: {
         type: "string",
         required: false,
       },
-      name: {
-        type: "string",
-        required: false, // Populated from first_name + lastName
-        default: ({ first_name, lastName }) => `${first_name} ${lastName}`,
-      },
-      image: {
-        type: "string",
-        required: false, // Maps to avatar
-      },
-    },
-  },
-  socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-    },
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID as string,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
     },
   },
   session: {
-    expiresIn: 30 * 24 * 60 * 60,
+    expiresIn: 60 * 60 * 24 * 30, // 30 days
+    updateAge: 60 * 60 * 24, // Update if older than 1 day
     cookieCache: {
       enabled: true,
-      maxAge: 5 * 60,
+      maxAge: 5 * 60, // 5 minutes
     },
   },
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: false,
+    minPasswordLength: 6,
+  },
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      // Map Google profile fields to your user fields
+      mapProfileToUser: (profile) => {
+        return {
+          email: profile.email,
+          name: profile.name,
+          image: profile.picture,
+          // Split name for first_name and lastName
+          first_name:
+            profile.given_name || profile.name?.split(" ")[0] || "User",
+          lastName:
+            profile.family_name || profile.name?.split(" ")[1] || "Name",
+          role: "AI_ENGINEER", // Default role for OAuth users
+          emailVerified: profile.email_verified || false,
+        };
+      },
+    },
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID || "",
+      clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
+      enabled: !!(
+        process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
+      ),
+      mapProfileToUser: (profile) => {
+        const names = profile.name?.split(" ") || [];
+        return {
+          email: profile.email,
+          name: profile.name,
+          image: profile.avatar_url,
+          first_name: names[0] || profile.login || "User",
+          lastName: names[1] || "Name",
+          role: "AI_ENGINEER",
+          username: profile.login,
+          githubUrl: profile.html_url,
+        };
+      },
+    },
+  },
+  trustedOrigins: ["http://localhost:3000"],
+  baseURL: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+  secret: process.env.BETTER_AUTH_SECRET!,
   plugins: [nextCookies()],
+  // Add redirect configuration
+  redirects: {
+    afterSignIn: "/dashboard",
+    afterSignUp: "/dashboard",
+    afterSignOut: "/login",
+  },
 });

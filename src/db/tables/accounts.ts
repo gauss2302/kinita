@@ -1,11 +1,12 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+// src/db/tables/accounts.ts
+import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { usersTable } from "./user";
 
 export const accountsTable = pgTable("accounts", {
-  id: uuid("id").primaryKey().defaultRandom(), // Changed to uuid
+  id: text("id").primaryKey(),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
-  userId: uuid("user_id")
+  userId: text("user_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
   accessToken: text("access_token"),

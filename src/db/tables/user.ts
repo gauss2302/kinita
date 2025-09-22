@@ -11,6 +11,11 @@ import {
   decimal,
   index,
 } from "drizzle-orm/pg-core";
+import { companiesTable } from "./companies";
+import { relations } from "drizzle-orm";
+import { sessionsTable } from "./session";
+import { accountsTable } from "./accounts";
+import { verificationsTable } from "./verifications";
 
 export const userRoles = [
   "AI_ENGINEER",
@@ -41,7 +46,7 @@ export type EmploymentType = (typeof employmentTypes)[number];
 export const usersTable = pgTable(
   "users",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
+    id: text("id").primaryKey(),
     email: varchar("email", { length: 255 }).notNull().unique(),
     username: varchar("username", { length: 100 }).unique(),
     name: varchar("name", { length: 255 }), // For Better Auth (populated from first_name + lastName)
@@ -86,6 +91,10 @@ export const usersTable = pgTable(
     passwordHash: varchar("password_hash", { length: 255 }), // Used by Better Auth
     emailVerified: boolean("email_verified").default(false), // Used by Better Auth
     isActive: boolean("is_active").default(true),
+
+    // Company Relation
+    companyId: text("company_id").references(() => companiesTable.id),
+
     lastLoginAt: timestamp("last_login_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
@@ -100,6 +109,16 @@ export const usersTable = pgTable(
     locationIdx: index("users_location_idx").on(table.location),
   })
 );
+
+export const usersRelations = relations(usersTable, ({ one, many }) => ({
+  company: one(companiesTable, {
+    fields: [usersTable.companyId],
+    references: [companiesTable.id],
+  }),
+  sessions: many(sessionsTable),
+  accounts: many(accountsTable),
+  verifications: many(verificationsTable),
+}));
 
 export type User = typeof usersTable.$inferSelect;
 export type NewUser = typeof usersTable.$inferInsert;
