@@ -1,6 +1,4 @@
 import { relations } from "drizzle-orm";
-
-// Import all tables directly to avoid circular dependencies
 import { usersTable } from "./tables/users";
 import { sessionsTable } from "./tables/sessions";
 import { accountsTable } from "./tables/accounts";
@@ -18,20 +16,22 @@ export const usersRelations = relations(usersTable, ({ one, many }) => ({
     fields: [usersTable.id],
     references: [jobSeekerProfilesTable.userId],
   }),
-
+  // Company affiliation (e.g., for admins)
+  company: one(companiesTable, {
+    fields: [usersTable.companyId],
+    references: [companiesTable.id],
+    relationName: "userToCompany",
+  }),
   // Company Relations
   createdCompanies: many(companiesTable, { relationName: "companyCreator" }),
   companyMemberships: many(companyMembersTable, { relationName: "memberUser" }),
-
   // Job Relations
   createdJobs: many(jobsTable, { relationName: "jobCreator" }),
   applications: many(applicationsTable, { relationName: "applicant" }),
-
   // Research Relations
   leadResearchOpportunities: many(researchOpportunitiesTable, {
     relationName: "researchLead",
   }),
-
   // Auth Relations
   sessions: many(sessionsTable, { relationName: "userSessions" }),
   accounts: many(accountsTable, { relationName: "userAccounts" }),
@@ -58,6 +58,7 @@ export const companiesRelations = relations(
       relationName: "companyCreator",
     }),
     members: many(companyMembersTable, { relationName: "companyMembers" }),
+    users: many(usersTable, { relationName: "userToCompany" }), // Added for companyId relation
     jobs: many(jobsTable, { relationName: "companyJobs" }),
     researchOpportunities: many(researchOpportunitiesTable, {
       relationName: "organizationResearch",

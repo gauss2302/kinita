@@ -15,7 +15,7 @@ export default async function RegisterCompanyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gradient-to-tl from-blue-600 to-red-500">
       <Header />
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
         <RegisterCompanyForm />

@@ -19,6 +19,7 @@ CREATE TABLE "users" (
 	"personal_website" varchar(500),
 	"is_active" boolean DEFAULT true,
 	"last_login_at" timestamp,
+	"company_id" text,
 	CONSTRAINT "users_email_unique" UNIQUE("email"),
 	CONSTRAINT "users_username_unique" UNIQUE("username")
 );
@@ -213,6 +214,7 @@ CREATE TABLE "research_opportunities" (
 	"published_at" timestamp
 );
 --> statement-breakpoint
+ALTER TABLE "users" ADD CONSTRAINT "users_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "companies" ADD CONSTRAINT "companies_creator_id_users_id_fk" FOREIGN KEY ("creator_id") REFERENCES "public"."users"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
@@ -229,6 +231,7 @@ ALTER TABLE "research_opportunities" ADD CONSTRAINT "research_opportunities_lead
 CREATE INDEX "users_email_idx" ON "users" USING btree ("email");--> statement-breakpoint
 CREATE INDEX "users_username_idx" ON "users" USING btree ("username");--> statement-breakpoint
 CREATE INDEX "users_role_idx" ON "users" USING btree ("role");--> statement-breakpoint
+CREATE INDEX "users_company_id_idx" ON "users" USING btree ("company_id");--> statement-breakpoint
 CREATE INDEX "companies_name_idx" ON "companies" USING btree ("name");--> statement-breakpoint
 CREATE INDEX "companies_slug_idx" ON "companies" USING btree ("slug");--> statement-breakpoint
 CREATE INDEX "companies_type_idx" ON "companies" USING btree ("type");--> statement-breakpoint

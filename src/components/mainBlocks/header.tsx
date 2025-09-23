@@ -1,10 +1,12 @@
-"use client"; // Marking as Client Component for simplicity
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 import Link from "next/link";
-import { authClient } from "@/lib/auth/auth_client"; // Use client-side auth for signOut
+import { authClient } from "@/lib/auth/auth_client";
 import { UserService } from "@/services/userService";
+import { useRouter } from "next/navigation";
 
 export default function Header({ user }: { user?: any }) {
-  // If user is passed from a Server Component, use it; otherwise, rely on client-side session
+  const router = useRouter();
   const navLinks = user
     ? [
         { href: "/dashboard", label: "Dashboard" },
@@ -27,6 +29,8 @@ export default function Header({ user }: { user?: any }) {
     : [
         { href: "/login", label: "Login" },
         { href: "/signup", label: "Sign Up" },
+        { href: "/register-company", label: "Register Company" },
+        { href: "/login-company", label: "Login Company" },
       ];
 
   return (
@@ -80,6 +84,7 @@ export default function Header({ user }: { user?: any }) {
                   <button
                     onClick={async () => {
                       await authClient.signOut({ redirectTo: "/login" });
+                      router.push("/login");
                     }}
                     className="w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
                   >

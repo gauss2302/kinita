@@ -1,9 +1,10 @@
-// src/lib/auth/auth.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db/client";
 
+// Import tables directly to avoid circular dependencies
 import { usersTable } from "@/db/tables/users";
 import { sessionsTable } from "@/db/tables/sessions";
 import { accountsTable } from "@/db/tables/accounts";
@@ -24,12 +25,10 @@ export const auth = betterAuth({
       first_name: {
         type: "string",
         required: false,
-        defaultValue: "User",
       },
       lastName: {
         type: "string",
         required: false,
-        defaultValue: "Name",
       },
       role: {
         type: "string",
@@ -59,18 +58,14 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      // Map Google profile fields to your user fields
       mapProfileToUser: (profile) => {
         return {
           email: profile.email,
           name: profile.name,
           image: profile.picture,
-          // Split name for first_name and lastName
-          first_name:
-            profile.given_name || profile.name?.split(" ")[0] || "User",
-          lastName:
-            profile.family_name || profile.name?.split(" ")[1] || "Name",
-          role: "AI_ENGINEER", // Default role for OAuth users
+          first_name: profile.given_name || profile.name?.split(" ")[0] || "",
+          lastName: profile.family_name || profile.name?.split(" ")[1] || "",
+          role: "AI_ENGINEER",
           emailVerified: profile.email_verified || false,
         };
       },
@@ -87,8 +82,8 @@ export const auth = betterAuth({
           email: profile.email,
           name: profile.name,
           image: profile.avatar_url,
-          first_name: names[0] || profile.login || "User",
-          lastName: names[1] || "Name",
+          first_name: names[0] || profile.login || "",
+          lastName: names[1] || "",
           role: "AI_ENGINEER",
           username: profile.login,
           githubUrl: profile.html_url,
@@ -100,10 +95,23 @@ export const auth = betterAuth({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
   secret: process.env.BETTER_AUTH_SECRET!,
   plugins: [nextCookies()],
-  // Add redirect configuration
   redirects: {
-    afterSignIn: "/dashboard",
+    // afterSignIn: "/dashboard",
+
     afterSignUp: "/dashboard",
     afterSignOut: "/login",
+    afterSignIn: async (session: any) => {
+      // Fetch user details to check role and companyId
+      const [user] = await db
+        .select({ role: usersTable.role, companyId: usersTable.companyId })
+        .from(usersTable)
+        .where(eq(usersTable.id, session.user.id))
+        .limit(1);
+
+      if (user.role === "ADMIN" && user.companyId) {
+        return `/dashboard/company/${user.companyId}`;
+      }
+      return "/dashboard";
+    },
   },
 });

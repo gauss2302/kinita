@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   pgTable,
   text,
@@ -6,6 +7,7 @@ import {
   timestamp,
   index,
 } from "drizzle-orm/pg-core";
+import { companiesTable } from "./companies";
 
 export const userRoles = [
   "AI_ENGINEER",
@@ -72,11 +74,16 @@ export const usersTable = pgTable(
     // System fields
     isActive: boolean("is_active").default(true),
     lastLoginAt: timestamp("last_login_at"),
+    // Link to affiliated company (e.g., for admins)
+    companyId: text("company_id").references((): any => companiesTable.id, {
+      onDelete: "set null",
+    }),
   },
   (table) => ({
     emailIdx: index("users_email_idx").on(table.email),
     usernameIdx: index("users_username_idx").on(table.username),
     roleIdx: index("users_role_idx").on(table.role),
+    companyIdIdx: index("users_company_id_idx").on(table.companyId),
   })
 );
 

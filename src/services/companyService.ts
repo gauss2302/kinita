@@ -3,6 +3,7 @@ import { db } from "@/db/client";
 import { companiesTable } from "@/db/tables/companies";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import type { Company } from "@/db/tables/companies";
 
 // Validation schema
 const createCompanySchema = z.object({
@@ -16,6 +17,7 @@ const createCompanySchema = z.object({
     .optional(),
   logo: z.string().url("Invalid logo URL").optional().or(z.literal("")),
   website: z.string().url("Invalid website URL").optional().or(z.literal("")),
+  creatorId: z.string().min(1, "Creator ID is required"),
 });
 
 const updateCompanySchema = z.object({
@@ -38,18 +40,15 @@ export class CompanyService {
     description?: string;
     logo?: string;
     website?: string;
-    creatorId?: string;
-  }) {
-    // Validate input
+    creatorId: string;
+  }): Promise<Company> {
     const validated = createCompanySchema.parse(data);
 
-    // Generate slug from name
     const slug = validated.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
 
-    // Check if company name already exists
     const existingCompany = await db
       .select()
       .from(companiesTable)
@@ -60,7 +59,6 @@ export class CompanyService {
       throw new Error("Company name already exists");
     }
 
-    // Check if slug already exists
     const existingSlug = await db
       .select()
       .from(companiesTable)
@@ -69,7 +67,6 @@ export class CompanyService {
 
     const finalSlug = existingSlug.length > 0 ? `${slug}-${Date.now()}` : slug;
 
-    // Insert company
     const [company] = await db
       .insert(companiesTable)
       .values({
@@ -79,16 +76,19 @@ export class CompanyService {
         description: validated.description || null,
         logo: validated.logo || null,
         website: validated.website || null,
-        creatorId: data.creatorId!,
+        creatorId: validated.creatorId,
         type: "STARTUP",
         size: "1_10",
+        locations: [], // Initialize empty locations array
       })
       .returning();
 
     return company;
   }
 
-  static async updateCompanyById(input: z.infer<typeof updateCompanySchema>) {
+  static async updateCompanyById(
+    input: z.infer<typeof updateCompanySchema>
+  ): Promise<Partial<Company>> {
     const validated = updateCompanySchema.parse(input);
 
     try {
@@ -120,7 +120,7 @@ export class CompanyService {
     }
   }
 
-  static async getCompanyById(id: string) {
+  static async getCompanyById(id: string): Promise<Company | null> {
     try {
       const [company] = await db
         .select()

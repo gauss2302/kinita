@@ -24,7 +24,7 @@ export default async function LandingPage() {
         lastName: session.user.lastName || "",
         role: session.user.role || "Unknown",
         image: session.user.image || null,
-        avatar: session.user.avatar || null,
+        avatar: session.user.image || null,
       };
     }
   }

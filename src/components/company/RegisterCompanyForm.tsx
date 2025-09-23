@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { registerCompanyAction } from "@/app/(company)/register-company/actions";
+import { registerCompanyAction } from "@/app/(auth)/(company)/register-company/actions";
 
 export default function RegisterCompanyForm() {
   const [companyName, setCompanyName] = useState("");
