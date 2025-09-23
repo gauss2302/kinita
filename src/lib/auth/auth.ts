@@ -9,6 +9,7 @@ import { usersTable } from "@/db/tables/users";
 import { sessionsTable } from "@/db/tables/sessions";
 import { accountsTable } from "@/db/tables/accounts";
 import { verificationsTable } from "@/db/tables/verifications";
+import { eq } from "drizzle-orm";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -39,6 +40,10 @@ export const auth = betterAuth({
         type: "string",
         required: false,
       },
+      companyId: {
+        type: "string",
+        required: false,
+      },
     },
   },
   session: {
@@ -47,6 +52,47 @@ export const auth = betterAuth({
     cookieCache: {
       enabled: true,
       maxAge: 5 * 60, // 5 minutes
+    },
+    getSessionUser: async (session: any) => {
+      const [user] = await db
+        .select({
+          id: usersTable.id,
+          name: usersTable.name,
+          email: usersTable.email,
+          first_name: usersTable.first_name,
+          lastName: usersTable.lastName,
+          username: usersTable.username,
+          role: usersTable.role,
+          image: usersTable.image,
+          avatar: usersTable.avatar,
+          bio: usersTable.bio,
+          linkedinUrl: usersTable.linkedinUrl,
+          githubUrl: usersTable.githubUrl,
+          companyId: usersTable.companyId,
+        })
+        .from(usersTable)
+        .where(eq(usersTable.id, session.userId))
+        .limit(1);
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      return {
+        ...session.user,
+        name: usersTable.name,
+        email: usersTable.email,
+        first_name: usersTable.first_name,
+        lastName: usersTable.lastName,
+        username: usersTable.username,
+        role: usersTable.role,
+        image: usersTable.image,
+        avatar: usersTable.avatar,
+        bio: usersTable.bio,
+        linkedinUrl: usersTable.linkedinUrl,
+        githubUrl: usersTable.githubUrl,
+        companyId: usersTable.companyId,
+      };
     },
   },
   emailAndPassword: {
@@ -96,9 +142,13 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET!,
   plugins: [nextCookies()],
   redirects: {
-    // afterSignIn: "/dashboard",
+    afterSignUp: async (session: any) => {
+      if (session.user.role == "ADMIN" && session.user.companyId) {
+        return `/dashboard/company/${session.user.companyId}`;
+      }
 
-    afterSignUp: "/dashboard",
+      return "/dashboard";
+    },
     afterSignOut: "/login",
     afterSignIn: async (session: any) => {
       // Fetch user details to check role and companyId

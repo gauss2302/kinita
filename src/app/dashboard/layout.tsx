@@ -5,11 +5,11 @@ export default async function RootLayout({
 }) {
   return (
     <>
-      <html>
-        <body className="min-h-screen bg-gray-100">
-          <main>{children}</main>
-        </body>
-      </html>
+      {/* <html> */}
+      {/* <body className="min-h-screen bg-gray-100"> */}
+      <main>{children}</main>
+      {/* </body> */}
+      {/* </html> */}
     </>
   );
 }

@@ -100,6 +100,7 @@ export const jobsTable = pgTable(
     statusIdx: index("jobs_status_idx").on(table.status),
     skillsIdx: index("jobs_skills_idx").using("gin", table.requiredSkills),
     publishedIdx: index("jobs_published_idx").on(table.publishedAt),
+    titleIdx: index("jobs_title_idx").on(table.title),
   })
 );
 

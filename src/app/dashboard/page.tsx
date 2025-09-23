@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Header from "@/components/mainBlocks/header";
+import Footer from "@/components/mainBlocks/footer";
 
 export const dynamic = "force-dynamic";
 
@@ -387,6 +388,7 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
