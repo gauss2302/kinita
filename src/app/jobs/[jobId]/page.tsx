@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import Header from "@/components/mainBlocks/header";
 import Footer from "@/components/mainBlocks/footer";
 import { auth } from "@/lib/auth/auth";
-import { UserService } from "@/services/userService";
+import { UserService } from "@/services/user/userService";
 import { headers } from "next/headers";
 import Link from "next/link";
 

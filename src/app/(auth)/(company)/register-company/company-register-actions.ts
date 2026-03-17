@@ -3,7 +3,7 @@
 "use server";
 import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
-import { CompanyService } from "@/services/companyService";
+import { CompanyService } from "@/services/company/companyService";
 import { db } from "@/db/client";
 import { usersTable } from "@/db/tables/users";
 import { companyMembersTable } from "@/db/tables/company-members";

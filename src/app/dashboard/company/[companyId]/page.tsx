@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { CompanyService } from "@/services/companyService";
+import { CompanyService } from "@/services/company/companyService";
 import { db } from "@/db/client";
 import { usersTable, jobsTable, companyMembersTable } from "@/db/schema";
 import { eq } from "drizzle-orm";

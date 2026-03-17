@@ -1,8 +1,8 @@
-"use client";
+// "use client";
 
-import { Toaster } from "@/components/ui/sonner";
-import NextTopLoader from "nextjs-toploader";
+// import { Toaster } from "@/components/ui/sonner";
+// import NextTopLoader from "nextjs-toploader";
 
-export default function Providers({ children }: { children: React.ReactNode }) {
-  return { children };
-}
+// export default function Providers({ children }: { children: React.ReactNode }) {
+//   return { children };
+// }

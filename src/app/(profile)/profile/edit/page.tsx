@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { UserService } from "@/services/userService";
+import { UserService } from "@/services/user/userService";
 import Header from "@/components/mainBlocks/header";
 import EditProfileForm from "@/components/profile/EditProfileForm";
 

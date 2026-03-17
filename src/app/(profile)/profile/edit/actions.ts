@@ -1,7 +1,7 @@
 "use server";
 import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
-import { UserService } from "@/services/userService";
+import { UserService } from "@/services/user/userService";
 
 export async function updateProfileAction(formData: FormData) {
   const headersList = await headers();

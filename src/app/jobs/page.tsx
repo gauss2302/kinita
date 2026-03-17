@@ -1,15 +1,15 @@
 import { db } from "@/db/client";
 import { jobsTable } from "@/db/tables/jobs";
 import { companiesTable } from "@/db/tables/companies";
-import { eq, ilike, or, and } from "drizzle-orm";
+import { eq, ilike, or, and, not } from "drizzle-orm";
 import Header from "@/components/mainBlocks/header";
 import { auth } from "@/lib/auth/auth";
-import { UserService } from "@/services/userService";
+import { UserService } from "@/services/user/userService";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-
 import { experienceLevels, employmentTypes } from "@/db/tables/users";
 import Link from "next/link";
+import JobFilterForm from "@/components/jobs/search/JobFilterForm";
 import JobCard from "@/components/jobs/JobCard";
 
 export const dynamic = "force-dynamic";
@@ -52,6 +52,20 @@ export default async function JobDashBoard({
   const { search, location, experienceLevel, employmentType, isRemote } =
     await searchParams;
 
+  // Fetch distinct locations for ACTIVE jobs, excluding null
+  const locations = await db
+    .selectDistinct({ location: jobsTable.location })
+    .from(jobsTable)
+    .where(
+      and(eq(jobsTable.status, "ACTIVE"), not(eq(jobsTable.location, null)))
+    )
+    .then((rows) =>
+      rows
+        .map((row) => row.location)
+        .filter((loc): loc is string => !!loc)
+        .sort()
+    );
+
   // Build dynamic query conditions
   const conditions = [
     eq(jobsTable.status, "ACTIVE"),
@@ -62,7 +76,7 @@ export default async function JobDashBoard({
           ilike(jobsTable.description, `%${search}%`)
         )
       : undefined,
-    location ? ilike(jobsTable.location, `%${location}%`) : undefined,
+    location ? eq(jobsTable.location, location) : undefined,
     experienceLevel
       ? eq(jobsTable.experienceLevel, experienceLevel)
       : undefined,
@@ -106,118 +120,16 @@ export default async function JobDashBoard({
           </div>
 
           {/* Search and Filters */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200/50 p-6 mb-8">
-            <form
-              action="/jobs"
-              method="GET"
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-            >
-              <div>
-                <label
-                  htmlFor="search"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Search
-                </label>
-                <input
-                  type="text"
-                  name="search"
-                  id="search"
-                  defaultValue={search}
-                  placeholder="Search by title or company..."
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="location"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Location
-                </label>
-                <input
-                  type="text"
-                  name="location"
-                  id="location"
-                  defaultValue={location}
-                  placeholder="e.g., New York"
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="experienceLevel"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Experience Level
-                </label>
-                <select
-                  name="experienceLevel"
-                  id="experienceLevel"
-                  defaultValue={experienceLevel}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">All Levels</option>
-                  {experienceLevels.map((level) => (
-                    <option key={level} value={level}>
-                      {level.replace("_", " ")}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label
-                  htmlFor="employmentType"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Employment Type
-                </label>
-                <select
-                  name="employmentType"
-                  id="employmentType"
-                  defaultValue={employmentType}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">All Types</option>
-                  {employmentTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type.replace("_", " ")}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  name="isRemote"
-                  id="isRemote"
-                  value="true"
-                  defaultChecked={isRemote === "true"}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label
-                  htmlFor="isRemote"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Remote Only
-                </label>
-              </div>
-              <div className="flex items-end space-x-2">
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-colors"
-                >
-                  Apply Filters
-                </button>
-                <Link
-                  href="/jobs"
-                  className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  Clear Filters
-                </Link>
-              </div>
-            </form>
-          </div>
+          <JobFilterForm
+            locations={locations}
+            experienceLevels={experienceLevels}
+            employmentTypes={employmentTypes}
+            initialSearch={search}
+            initialLocation={location}
+            initialExperienceLevel={experienceLevel}
+            initialEmploymentType={employmentType}
+            initialIsRemote={isRemote}
+          />
 
           {/* Job List */}
           <div>
